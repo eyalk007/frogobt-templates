@@ -1,0 +1,39 @@
+frogbot-scan:
+  # JFrog's Docker image with common package managers pre-installed
+  image: releases-docker.jfrog.io/jfrog-ecosystem-integration-env
+  
+  rules:
+    # Scan pull requests - triggered manually on MRs
+    - if: $CI_PIPELINE_SOURCE == 'merge_request_event'
+      when: manual
+      variables:
+        FROGBOT_CMD: "scan-pull-request"
+    # Scan repository - triggered on default branch pushes or scheduled pipelines
+    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH || $CI_PIPELINE_SOURCE == "schedule"
+      variables:
+        FROGBOT_CMD: "scan-repository"
+  
+  variables:
+    # [Mandatory] JFrog Platform URL
+    # Set in GitLab CI/CD Variables: Settings > CI/CD > Variables
+    JF_URL: $JF_URL
+    
+    # [Mandatory] JFrog Access Token with Xray read permissions
+    JF_ACCESS_TOKEN: $JF_ACCESS_TOKEN
+    
+    # [Mandatory] GitLab access token with api scope
+    JF_GIT_TOKEN: $JF_GIT_TOKEN
+
+    # [Optional] For air-gapped environments - set to your Artifactory repository
+    # JF_RELEASES_REPO: $JF_RELEASES_REPO
+  
+  script:
+    # For Linux / MacOS runner:
+    - |
+      getFrogbotScriptPath=$(if [ -z "$JF_RELEASES_REPO" ]; then echo "https://releases.jfrog.io"; else echo "${JF_URL}/artifactory/${JF_RELEASES_REPO}"; fi)
+      curl -fL "$getFrogbotScriptPath/artifactory/frogbot/v3/[RELEASE]/getFrogbot.sh" | sh
+      ./frogbot ${FROGBOT_CMD}
+
+    # For Windows runner, replace the script above with:
+    # - Invoke-WebRequest -Uri "https://releases.jfrog.io/artifactory/frogbot/v3/[RELEASE]/frogbot-windows-amd64/frogbot.exe" -OutFile .\frogbot.exe
+    # - .\frogbot.exe ${FROGBOT_CMD}

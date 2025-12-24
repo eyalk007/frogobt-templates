@@ -1,0 +1,45 @@
+pr:
+  branches:
+    include:
+      - '*'
+
+trigger: none
+
+pool:
+  vmImage: ubuntu-latest
+
+variables:
+  # [Mandatory] Set these in Azure DevOps: Pipelines > Library > Variable Groups
+  # or Pipeline > Edit > Variables
+  JF_URL: $(JF_URL)
+  JF_ACCESS_TOKEN: $(JF_ACCESS_TOKEN)
+  JF_GIT_TOKEN: $(JF_GIT_TOKEN)
+  
+  # [Mandatory] Azure DevOps organization or project name
+  JF_GIT_OWNER: '<YOUR_AZURE_DEVOPS_ORG_OR_PROJECT>'
+  
+  # [Mandatory if NOT using Azure Repos]
+  # JF_GIT_PROVIDER: '<YOUR_GIT_PROVIDER>'
+  # JF_GIT_API_ENDPOINT: '<YOUR_API_ENDPOINT>'
+  
+  # [Mandatory if using Bitbucket with Azure Pipelines]
+  # Note: PR auto-detection only works for Azure Repos and GitHub.
+  # For Bitbucket PRs, you must manually set:
+  # JF_GIT_PULL_REQUEST_ID: '<PR_ID>'
+  # JF_GIT_BASE_BRANCH: '<TARGET_BRANCH>'
+
+jobs:
+  - job: FrogbotScanPullRequest
+    displayName: 'Frogbot Scan Pull Request'
+    steps:
+      - task: CmdLine@2
+        displayName: 'Download and Run Frogbot'
+        env:
+          JF_URL: $(JF_URL)
+          JF_ACCESS_TOKEN: $(JF_ACCESS_TOKEN)
+          JF_GIT_TOKEN: $(JF_GIT_TOKEN)
+          JF_GIT_OWNER: $(JF_GIT_OWNER)
+        inputs:
+          script: |
+            curl -fL "https://releases.jfrog.io/artifactory/frogbot/v3/[RELEASE]/getFrogbot.sh" | sh
+            ./frogbot scan-pull-request

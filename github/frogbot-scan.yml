@@ -1,0 +1,37 @@
+name: Frogbot Scan
+
+on:
+  # Scan pull requests
+  pull_request_target:
+    types: [opened, synchronize]
+  # Scan repository on push to main
+  push:
+    branches:
+      - main
+  # Scheduled daily scan
+  schedule:
+    - cron: '0 0 * * *'
+  # Manual trigger
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  pull-requests: write
+  security-events: write
+  # id-token: write  # Uncomment if using OIDC
+
+jobs:
+  frogbot-scan:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: jfrog/frogbot@v3
+        # with:
+        #   oidc-provider-name: "<YOUR_OIDC_PROVIDER>"  # Uncomment if using OIDC
+        env:
+          # [Mandatory] JFrog Platform URL
+          # Set in GitHub: Settings > Secrets and variables > Actions
+          JF_URL: ${{ secrets.JF_URL }}
+          
+          # [Mandatory] JFrog Access Token with Xray read permissions
+          JF_ACCESS_TOKEN: ${{ secrets.JF_ACCESS_TOKEN }}
+
