@@ -31,6 +31,9 @@ pipeline {
                 //[key: 'JF_GIT_PROJECT', value: '$.resource.repository.project.name'],
             ],
             causeString: 'Push Webhook',
+             regexpFilterText: '$ref',
+            //TRIGGERS ONLY ON MASTER/MAIN
+             regexpFilterExpression: '^refs/heads/(master|main)$',
             // Webhook URL: https://<JENKINS_URL>/generic-webhook-trigger/invoke?token=<YOUR_WEBHOOK_TOKEN>
             token: '<YOUR_WEBHOOK_TOKEN>'
         )
